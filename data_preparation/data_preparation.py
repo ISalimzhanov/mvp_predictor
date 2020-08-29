@@ -1,6 +1,6 @@
 from data_preparation.data_preprocessing import preprocess_data
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler
+from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler, RobustScaler
 from config import modification_rules, output_feature
 import copy
 from sklearn.model_selection import train_test_split
@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 def scale_data(data: pd.DataFrame) -> pd.DataFrame:
     df = copy.deepcopy(data)
     not_y = df.columns != output_feature
-    df.loc[:, not_y] = MaxAbsScaler().fit_transform(df.loc[:, not_y].values)
+    df.loc[:, not_y] = MinMaxScaler().fit_transform(df.loc[:, not_y].values)
     return df
 
 
@@ -31,7 +31,7 @@ def modify_data(data: pd.DataFrame) -> pd.DataFrame:
 
 def split_data(data: pd.DataFrame) -> tuple:
     x_train, x_test, y_train, y_test = train_test_split(data.loc[:, data.columns != output_feature],
-                                                        data[output_feature], test_size=0.1,
+                                                        data[output_feature], test_size=0.01,
                                                         random_state=True)
     return x_train, x_test, y_train, y_test
 
