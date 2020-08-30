@@ -15,32 +15,33 @@ def sgd_calc(x: pd.DataFrame, y: pd.DataFrame, max_iter: int, alpha: float) -> n
     x_ = copy.deepcopy(x)
     x_['ones'] = np.ones(x_.shape[0])
     coefs = np.random.rand(1, x_.shape[1])
-    y_estimate = pd.DataFrame(data=np.array(x_.dot(coefs.T)), columns=[output_feature])
     for iter in range(max_iter):
+        y_hat = pd.DataFrame(data=np.array(x_.dot(coefs.T)), columns=[output_feature])
         i = random.randint(0, x_.shape[0] - 1)
         for j in range(coefs.shape[1]):
-            coefs[0, j] -= alpha * (y_estimate - y.values).iloc[i, 0] * pow(x_.iloc[i, j], j)
+            coefs[0, j] -= alpha * (y_hat - y.values).iloc[i, 0] * pow(x_.iloc[i, j], j)
     return coefs
 
 
-def bgd_calc(x: pd.DataFrame, y: pd.DataFrame, max_iter: int, alpha: float) -> np.array:
+def bgd_calc(x: pd.DataFrame, y: pd.DataFrame, max_iter: int, alpha: float, batch_size=50) -> np.array:
     random.seed(time.time())
     x_ = copy.deepcopy(x)
     x_['ones'] = np.ones(x_.shape[0])
     coefs = np.random.rand(1, x_.shape[1])
+
     batches = np.arange(x_.shape[0])
-    batches = np.array_split(batches, 50)
-    y_estimate = pd.DataFrame(data=np.array(x_.dot(coefs.T)), columns=[output_feature])
+    batches = np.array_split(batches, batch_size)
     for iter in range(max_iter):
-        i = random.randint(0, len(batches) - 1)
+        batch_i = random.randint(0, len(batches) - 1)
+        y_hat = pd.DataFrame(data=np.array(x_.dot(coefs.T)), columns=[output_feature])
         for j in range(coefs.shape[1]):
-            batch = batches[i]
+            batch = batches[batch_i]
             for i in range(len(batch)):
-                coefs[0, j] -= alpha * (y_estimate - y.values).iloc[i, 0] * pow(x_.iloc[i, j], j)
+                coefs[0, j] -= 1. / batch_size * alpha * (y_hat - y.values).iloc[i, 0] * pow(x_.iloc[i, j], j)
     return coefs
 
 
-class GdReggression():
+class GdReggression:
     def __init__(self, type: str, alpha: float, max_iter: int):
         self.type = type
         self.alpha = alpha
@@ -77,7 +78,7 @@ def mvp_predictor():
         y_test = pd.read_csv('data/y_test.csv', index_col=0)
     except FileNotFoundError:
         x_train, x_test, y_train, y_test = prepare_data()
-    reg = GdReggression(type='bgd', max_iter=2000, alpha=0.05)
+    reg = GdReggression(type='bgd', max_iter=1000, alpha=0.001)
     reg.fit(x_train, y_train)
     print('Coefs:', reg.coef_[1:, ])
     print('Intercept_:', reg.coef_[0, :])

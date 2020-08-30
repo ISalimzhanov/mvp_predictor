@@ -1,5 +1,5 @@
 from config import end_year
-from ml_methods.linear_regression import mvp_predictor
+from ml_methods.gradient_descent import mvp_predictor
 from data_preparation.unknown_mvp import next_mvp_prediction_data
 import matplotlib.pyplot as plt
 import pandas as pd
