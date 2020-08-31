@@ -31,7 +31,7 @@ def modify_data(data: pd.DataFrame) -> pd.DataFrame:
 
 def split_data(data: pd.DataFrame) -> tuple:
     x_train, x_test, y_train, y_test = train_test_split(data.loc[:, data.columns != output_feature],
-                                                        data[output_feature], test_size=0.01,
+                                                        data[output_feature], test_size=0.2,
                                                         random_state=True)
     return x_train, x_test, y_train, y_test
 
