@@ -8,6 +8,6 @@ per_game_stat_attrs = ['g', 'age', 'pts_per_g', 'trb_per_g', 'ast_per_g', 'stl_p
                        'tov_per_g', 'mp_per_g', 'fg_pct']
 
 modification_rules = {'ignore': ['mvp_score'], 'all': ['g', 'ws', 'vorp', 'age', 'mp_per_g'], 'fg_pct': ['pts_per_g'],
-                      'ts_pct': ['pts_per_g'], 'tov_per_g': ['ast_per_g'], 'g': ['g'], 'mp_per_g': ['mp_per_g']}
+                      'ts_pct': ['pts_per_g'], 'tov_per_g': ['ast_per_g']}
 
 output_feature = 'mvp_score'

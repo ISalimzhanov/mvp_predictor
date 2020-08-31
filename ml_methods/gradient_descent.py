@@ -80,7 +80,7 @@ def mvp_predictor(**kwargs):
     except FileNotFoundError:
         x_train, x_test, y_train, y_test = prepare_data()
     # reg = GdReggression(type='bgd', max_iter=5000, alpha=1, is_adaptive=True)
-    reg = SGDRegressor(max_iter=50000, warm_start=True, learning_rate='adaptive')
+    reg = SGDRegressor(max_iter=70000, warm_start=True, learning_rate='adaptive', loss='squared_epsilon_insensitive')
     reg.fit(x_train, np.ravel(y_train))
     print('Coefs:', reg.coef_)
     print('Intercept_:', reg.intercept_)
