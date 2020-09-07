@@ -1,6 +1,6 @@
 from data_preparation.data_preprocessing import preprocess_data
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler, RobustScaler
+from sklearn.preprocessing import MinMaxScaler
 from config import modification_rules, output_feature
 import copy
 from sklearn.model_selection import train_test_split
@@ -20,12 +20,12 @@ def modify_data(data: pd.DataFrame) -> pd.DataFrame:
         for other_feature in data.columns:
             if other_feature == feature or other_feature in modification_rules['ignore']:
                 continue
-            df[f'{feature}_{other_feature}'] = df[feature].mul(df[other_feature])
+            df[f'{feature}*{other_feature}'] = df[feature].mul(df[other_feature])
     for feature, mult_with in modification_rules.items():
         if feature == 'all' or feature == 'ignore':
             continue
         for other_feature in mult_with:
-            df[f'{feature}_{other_feature}'] = df[feature].mul(df[other_feature])
+            df[f'{feature}*{other_feature}'] = df[feature].mul(df[other_feature])
     return df
 
 
