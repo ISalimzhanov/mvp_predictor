@@ -1,6 +1,11 @@
+import threading
+
 import pandas as pd
 import mysql.connector
 from storage_control.db_connectors.databaseConnector import DatabaseConnector
+from datetime import datetime
+import os
+from storage_control.scraper.scraper import Scraper
 
 
 class MysqlConnector(DatabaseConnector):
@@ -12,9 +17,18 @@ class MysqlConnector(DatabaseConnector):
             'password': 'Password123@#!'
         }
         self.conn = mysql.connector.connect(**database_info)
-        self.create_tables()
 
-    def create_tables(self):
+    def __clear(self):
+        tables = ['Advanced', 'PerGame', 'MVPScore', 'Player']
+        with self.conn.cursor() as cursor:
+            for table in tables:
+                drop_query = f'DROP TABLE {table};'
+                try:
+                    cursor.execute(drop_query)
+                except mysql.connector.errors.DatabaseError as error:
+                    print(error)
+
+    def __create_tables(self):
         tables = {
             'Player': 'CREATE TABLE Player('
                       'player_id VARCHAR (9) PRIMARY KEY, '
@@ -59,9 +73,53 @@ class MysqlConnector(DatabaseConnector):
             for table_name, query in tables.items():
                 try:
                     cursor.execute(query)
-                    self.conn.commit()
-                except Exception as e:
-                    print(e)
+                except mysql.connector.errors.DatabaseError as error:
+                    print(error)
+
+    def __fill_advanced(self):
+        data = Scraper.scrap_stats_by_period(
+            start_year=int(os.environ['start_year']),
+            end_year=datetime.today().year,
+            stat_type='advanced'
+        )
+        self.add_players(data.loc[:, ['name', 'player_id']].drop_duplicates())
+        self.add_advanced(data.loc[:, data.columns != 'name'])
+
+    def __fill_per_game(self):
+        data = Scraper.scrap_stats_by_period(
+            start_year=int(os.environ['start_year']),
+            end_year=datetime.today().year,
+            stat_type='per_game'
+        )
+        self.add_players(data.loc[:, ['name', 'player_id']].drop_duplicates())
+        self.add_per_game(data.loc[:, data.columns != 'name'])
+
+    def __fill_mvp_score(self):
+        data = Scraper.scrap_mvp_by_period(
+            start_year=int(os.environ['start_year']),
+            end_year=datetime.today().year
+        )
+        self.add_players(data.loc[:, ['name', 'player_id']].drop_duplicates())
+        self.add_mvp_score(data.loc[:, data.columns != 'name'])
+
+    def launch(self):
+        self.__clear()
+        print('Database cleared')
+        self.__create_tables()
+        print("Tables created")
+        threads = [
+            threading.Thread(target=self.__fill_advanced),
+            threading.Thread(target=self.__fill_per_game),
+            threading.Thread(target=self.__fill_mvp_score)
+        ]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        print("Database's filled")
+
+    def update(self, year: int, data: pd.DataFrame) -> None:
+        pass
 
     def get_data(self, query: str) -> pd.DataFrame:
         with self.conn.cursor() as cursor:
@@ -108,7 +166,7 @@ class MysqlConnector(DatabaseConnector):
 
     def add_per_game(self, df: pd.DataFrame) -> None:
         query = 'INSERT INTO PerGame({}) ' \
-                'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'.format(', '.join(col for col in df.columns))
+                'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'.format(', '.join(col for col in df.columns))
         data = [tuple(val) for val in df.T.to_dict(orient='list').values()]
         self.add_data(query, data)
 
@@ -121,7 +179,14 @@ class MysqlConnector(DatabaseConnector):
         insert_query = 'INSERT INTO Player VALUES (%s, %s)'
         with self.conn.cursor() as cursor:
             cursor.execute(existed_query, players['player_id'])
-            existed = cursor.fetchall()
+            existed = [e[0] for e in cursor.fetchall()]
             not_existed = [(players["player_id"][i], players["name"][i])
                            for i in range(n_rows) if players["player_id"][i] not in existed]
         self.add_data(insert_query, not_existed)
+
+
+if __name__ == '__main__':
+    connector = MysqlConnector()
+    os.environ['start_year'] = '1980'
+    connector.launch()
+    df = connector.get_advanced(year=2020)

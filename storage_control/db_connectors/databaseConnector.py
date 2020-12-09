@@ -9,6 +9,14 @@ class DatabaseConnector(ABC):
         return getattr(DatabaseConnector, '_instance')
 
     @abstractmethod
+    def launch(self) -> None:
+        pass
+
+    @abstractmethod
+    def update(self, year: int, data: pd.DataFrame) -> None:
+        pass
+        
+    @abstractmethod
     def get_advanced(self, year: int) -> pd.DataFrame:
         pass
 
