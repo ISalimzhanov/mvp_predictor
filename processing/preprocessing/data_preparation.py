@@ -46,9 +46,7 @@ class Preparator:
         x_train = train_data.loc[:, train_data.columns != self.output_feature]
         y_train = train_data[self.output_feature]
         x_test = test_data.loc[:, test_data.columns != self.output_feature]
-        y_test = test_data[self.output_feature]
         x_train.to_csv(f'{self.store_path}/x_train.csv')
         x_test.to_csv(f'{self.store_path}/x_test.csv')
         y_train.to_csv(f'{self.store_path}/y_train.csv')
-        y_test.to_csv(f'{self.store_path}/y_test.csv')
-        return x_train, y_train, x_test, y_test
+        return x_train, y_train, x_test
