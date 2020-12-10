@@ -11,10 +11,10 @@ from storage_control.scraper.scraper import Scraper
 class MysqlConnector(DatabaseConnector):
     def __init__(self):
         database_info = {
-            'database': 'Nba',
-            'host': 'localhost',
-            'user': 'user1',
-            'password': 'Password123@#!'
+            'database': os.environ['db_name'],
+            'host': os.environ['db_host'],
+            'user': os.environ['db_user'],
+            'password': os.environ['db_pass']
         }
         self.conn = mysql.connector.connect(**database_info)
 
@@ -25,6 +25,7 @@ class MysqlConnector(DatabaseConnector):
                 drop_query = f'DROP TABLE {table};'
                 try:
                     cursor.execute(drop_query)
+                    self.conn.commit()
                 except mysql.connector.errors.DatabaseError as error:
                     print(error)
 
@@ -73,6 +74,7 @@ class MysqlConnector(DatabaseConnector):
             for table_name, query in tables.items():
                 try:
                     cursor.execute(query)
+                    self.conn.commit()
                 except mysql.connector.errors.DatabaseError as error:
                     print(error)
 
@@ -107,19 +109,32 @@ class MysqlConnector(DatabaseConnector):
         print('Database cleared')
         self.__create_tables()
         print("Tables created")
-        threads = [
-            threading.Thread(target=self.__fill_advanced),
-            threading.Thread(target=self.__fill_per_game),
-            threading.Thread(target=self.__fill_mvp_score)
-        ]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        self.__fill_advanced()
+        self.__fill_per_game()
+        self.__fill_mvp_score()
         print("Database's filled")
 
-    def update(self, year: int, data: pd.DataFrame) -> None:
-        pass
+    def __update_advanced(self, year: int) -> None:
+        with self.conn.cursor() as cursor:
+            data = Scraper.scrap_stats_by_year(year, 'advanced')
+            query = 'DELETE FROM Advanced as adv where adv.year = {year}'
+            cursor.execute(query)
+            self.conn.commit()
+        self.add_players(data.loc[:, ['name', 'player_id']].drop_duplicates())
+        self.add_advanced(data.loc[:, data.columns != 'name'])
+
+    def __update_per_game(self, year: int) -> None:
+        with self.conn.cursor() as cursor:
+            data = Scraper.scrap_stats_by_year(year, 'per_game')
+            query = 'DELETE FROM PerGame as pg where pg.year = {year}'
+            cursor.execute(query)
+            self.conn.commit()
+        self.add_players(data.loc[:, ['name', 'player_id']].drop_duplicates())
+        self.add_per_game(data.loc[:, data.columns != 'name'])
+
+    def update(self, year: int) -> None:
+        self.__update_per_game(year)
+        self.__update_advanced(year)
 
     def get_data(self, query: str) -> pd.DataFrame:
         with self.conn.cursor() as cursor:
@@ -183,10 +198,3 @@ class MysqlConnector(DatabaseConnector):
             not_existed = [(players["player_id"][i], players["name"][i])
                            for i in range(n_rows) if players["player_id"][i] not in existed]
         self.add_data(insert_query, not_existed)
-
-
-if __name__ == '__main__':
-    connector = MysqlConnector()
-    os.environ['start_year'] = '1980'
-    connector.launch()
-    df = connector.get_advanced(year=2020)

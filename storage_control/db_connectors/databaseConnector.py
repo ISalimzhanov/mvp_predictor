@@ -13,7 +13,7 @@ class DatabaseConnector(ABC):
         pass
 
     @abstractmethod
-    def update(self, year: int, data: pd.DataFrame) -> None:
+    def update(self, year: int) -> None:
         pass
         
     @abstractmethod
