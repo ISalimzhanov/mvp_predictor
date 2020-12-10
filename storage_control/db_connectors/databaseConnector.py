@@ -15,7 +15,11 @@ class DatabaseConnector(ABC):
     @abstractmethod
     def update(self, year: int) -> None:
         pass
-        
+
+    @abstractmethod
+    def get_players(self, player_ids: list) -> pd.Series:
+        pass
+
     @abstractmethod
     def get_advanced(self, year: int) -> pd.DataFrame:
         pass

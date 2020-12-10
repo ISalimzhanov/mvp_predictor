@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Ссылки</title>
+    <!-- Google Fonts Roboto -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <!-- Material Design Bootstrap -->
+    <link rel="stylesheet" href="css/mdb.min.css">
+    <!-- Your custom styles (optional) -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- jQuery -->
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <!-- Bootstrap tooltips -->
+    <script type="text/javascript" src="js/popper.min.js"></script>
+    <!-- Bootstrap core JavaScript -->
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <!-- MDB core JavaScript -->
+    <script type="text/javascript" src="js/mdb.min.js"></script>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light"
+     style="background-color: #454ADE; height: 100px; font-size: 20px">
+    <snap class="navbar-brand"> MalsRace</snap>
+    <ul class="navbar-nav bd-navbar-nav flex-row">
+        <li class="nav-item">
+            <a class="nav-link "
+               onclick="showImage('SGD.png')"> SGD
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active"
+               onclick="showImage('LeastSquares.png');"> Least Squares
+            </a>
+        </li>
+    </ul>
+</nav>
+<div id="mvp_prediction"></div>
+<script>
+    function showImage(src) {
+        var img = document.createElement("img");
+        img.src = src;
+        var block = document.getElementById("mvp_prediction");
+        block.innerHTML = "";
+        block.appendChild(img);
+    }
+</script>
+</body>
+</html>

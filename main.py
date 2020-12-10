@@ -1,16 +1,29 @@
 import argparse
 import os
-from datetime import datetime
 
-from storage_control.db_connectors.mysqlConnector import MysqlConnector
+import matplotlib.pyplot as plt
+from processing.ml_algorithms.lsPredictor import LsPredictor
+from processing.ml_algorithms.sgdPredictor import SgdPredictor
 from storage_control.db_connectors.databaseConnector import DatabaseConnector
+from storage_control.db_connectors.mysqlConnector import MysqlConnector
+from presentation.web_interface import app
 
 
-def update_storage(connector: DatabaseConnector):
-    while True:
-        now = datetime.now()
-        if not now.hour and not now.minute:
-            connector.update(now.year)
+def plot_predictions(db_conn: DatabaseConnector):
+    predictors = {
+        'LeastSquares': LsPredictor(db_conn),
+        'SGD': SgdPredictor(db_conn)
+    }
+    for method_name, predictor in predictors.items():
+        prediction = predictor.predict()
+        plt.clf()
+        plt.figure(figsize=(10, 10))
+        plt.plot(prediction['name'], prediction['mvp_prob'], 'o')
+        plt.xlabel('Name')
+        plt.ylabel('MVP Probability%')
+        plt.xticks(rotation=90)
+        plt.legend()
+        plt.savefig(f'templates/{method_name}.png')
 
 
 if __name__ == '__main__':
@@ -32,10 +45,6 @@ if __name__ == '__main__':
     os.environ['db_user'] = args.db_user
     os.environ['db_pass'] = args.db_pass
     os.environ['start_year'] = args.start_year
-    try:
-        conn = connectors[args.type]()
-        if args.scrap:
-            conn.launch()
-        update_storage(conn)
-    except KeyError:
-        print('Incorrect type')
+    conn = connectors[args.type]()
+    plot_predictions(conn)
+    app.run(debug=True)

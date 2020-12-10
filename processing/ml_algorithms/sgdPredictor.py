@@ -1,7 +1,5 @@
 from sklearn.linear_model import SGDRegressor
 import pandas as pd
-from sklearn.metrics import r2_score, make_scorer
-from sklearn.model_selection import GridSearchCV
 
 from processing.ml_algorithms.predictor import Predictor
 from processing.preprocessing.data_preparation import Preparator
@@ -9,6 +7,12 @@ from storage_control.db_connectors.databaseConnector import DatabaseConnector
 
 
 class SgdPredictor(Predictor):
+    def __new__(cls, *args, **kwargs):
+        kwargs.get('db_conn')
+        if not hasattr(SgdPredictor, '_instance'):
+            setattr(SgdPredictor, '_instance', super(SgdPredictor, cls).__new__(cls))
+        return getattr(SgdPredictor, '_instance')
+
     def __init__(self, db_conn: DatabaseConnector):
         self.reg = SGDRegressor(learning_rate='adaptive', loss='squared_loss', penalty='l1')
         super(SgdPredictor, self).__init__(db_conn=db_conn)
@@ -22,10 +26,10 @@ class SgdPredictor(Predictor):
             x_train, x_test, y_train = Preparator(self.db_conn)
         self.train(x_train, y_train)
         res = pd.DataFrame()
-        res['player_id'] = x_test['player_id']
-        res['mvp_score'] = self.reg.predict(x_test.loc[:, x_test.columns != 'player_id'])
-        res['mvp_score'] = res['mvp_score'].sub(res['mvp_score'].min())
-        res['mvp_score'] = res['mvp_score'].div(res['mvp_score'].sum())
+        res['name'] = self.db_conn.get_players(list(x_test['player_id'].to_dict().values()))
+        res['mvp_prob'] = self.reg.predict(x_test.loc[:, x_test.columns != 'player_id'])
+        res['mvp_prob'] = res['mvp_prob'].sub(res['mvp_prob'].min())
+        res['mvp_prob'] = res['mvp_prob'].div(res['mvp_prob'].sum())
         return res
 
     def train(self, x_train: pd.DataFrame, y_train: pd.DataFrame):

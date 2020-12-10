@@ -8,6 +8,12 @@ from storage_control.db_connectors.databaseConnector import DatabaseConnector
 
 
 class LsPredictor(Predictor):
+    def __new__(cls, *args, **kwargs):
+        kwargs.get('db_conn')
+        if not hasattr(LsPredictor, '_instance'):
+            setattr(LsPredictor, '_instance', super(LsPredictor, cls).__new__(cls))
+        return getattr(LsPredictor, '_instance')
+
     def __init__(self, db_conn: DatabaseConnector):
         self.reg = LinearRegression()
         super(LsPredictor, self).__init__(db_conn=db_conn)
@@ -36,11 +42,11 @@ class LsPredictor(Predictor):
         use_columns = [col for col in LsPredictor.regularize(x_train)]
         self.train(x_train[use_columns], y_train)
         res = pd.DataFrame()
-        res['player_id'] = x_test['player_id']
-        res['mvp_score'] = self.reg.predict(x_test[use_columns])
+        res['name'] = self.db_conn.get_players(list(x_test['player_id'].to_dict().values()))
+        res['mvp_prob'] = self.reg.predict(x_test[use_columns])
 
-        res['mvp_score'] = res['mvp_score'].sub(res['mvp_score'].min())
-        res['mvp_score'] = res['mvp_score'].div(res['mvp_score'].sum())
+        res['mvp_prob'] = res['mvp_prob'].sub(res['mvp_prob'].min())
+        res['mvp_prob'] = res['mvp_prob'].div(res['mvp_prob'].sum())
         return res
 
     def train(self, x_train: pd.DataFrame, y_train: pd.DataFrame):

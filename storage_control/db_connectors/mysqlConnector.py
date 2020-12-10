@@ -144,6 +144,17 @@ class MysqlConnector(DatabaseConnector):
             data = [dict(zip(columns, row)) for row in rows]
         return pd.DataFrame(data)
 
+    def get_players(self, player_ids: list) -> pd.Series:
+        query = 'SELECT * ' \
+                'FROM Player as player ' \
+                'WHERE player.player_id IN ({})'.format(', '.join('%s' for unused in player_ids))
+        with self.conn.cursor() as cursor:
+            cursor.execute(query, player_ids)
+            columns = [i[0] for i in cursor.description]
+            rows = cursor.fetchall()
+            data = [dict(zip(columns, row)) for row in rows]
+        return pd.Series([d['name'] for d in data])
+
     def get_advanced(self, year: int) -> pd.DataFrame:
         query = 'SELECT * ' \
                 'FROM Advanced as adv ' \
