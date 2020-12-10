@@ -23,7 +23,7 @@ def plot_predictions(db_conn: DatabaseConnector):
         plt.ylabel('MVP Probability%')
         plt.xticks(rotation=90)
         plt.legend()
-        plt.savefig(f'templates/{method_name}.png')
+        plt.savefig(f'presentation/templates/{method_name}.png')
 
 
 if __name__ == '__main__':
