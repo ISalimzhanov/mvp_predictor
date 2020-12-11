@@ -43,7 +43,7 @@
 <script>
     function showImage(src) {
         var img = document.createElement("img");
-        img.src = src;
+        img.src = "static/" + src;
         var block = document.getElementById("mvp_prediction");
         block.innerHTML = "";
         block.appendChild(img);
