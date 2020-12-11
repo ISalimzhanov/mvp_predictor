@@ -38,7 +38,7 @@ class LsPredictor(Predictor):
             x_test = pd.read_csv('processing/data/x_test.csv', index_col=0)
             y_train = pd.read_csv('processing/data/y_train.csv', index_col=0)
         except FileNotFoundError:
-            x_train, x_test, y_train = Preparator(self.db_conn)
+            x_train, x_test, y_train = Preparator(self.db_conn).run()
         use_columns = [col for col in LsPredictor.regularize(x_train)]
         self.train(x_train[use_columns], y_train)
         res = pd.DataFrame()
