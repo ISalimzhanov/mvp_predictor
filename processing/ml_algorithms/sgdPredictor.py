@@ -23,7 +23,7 @@ class SgdPredictor(Predictor):
             x_test = pd.read_csv('processing/data/x_test.csv', index_col=0)
             y_train = pd.read_csv('processing/data/y_train.csv', index_col=0)
         except FileNotFoundError:
-            x_train, x_test, y_train = Preparator(self.db_conn)
+            x_train, x_test, y_train = Preparator(self.db_conn).run()
         self.train(x_train, y_train)
         res = pd.DataFrame()
         res['name'] = self.db_conn.get_players(list(x_test['player_id'].to_dict().values()))
