@@ -43,7 +43,7 @@ class LsPredictor(Predictor):
         self.train(x_train[use_columns], y_train)
         res = pd.DataFrame()
         res['name'] = self.db_conn.get_players(list(x_test['player_id'].to_dict().values()))
-        res['mvp_prob'] = self.reg.predict(x_test[use_columns])
+        res['mvp_prob'] = self.reg.predict(x_test[use_columns])[:, 0]
 
         res['mvp_prob'] = res['mvp_prob'].sub(res['mvp_prob'].min())
         res['mvp_prob'] = res['mvp_prob'].div(res['mvp_prob'].sum())
