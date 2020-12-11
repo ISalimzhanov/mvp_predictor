@@ -2,8 +2,8 @@ import argparse
 import os
 from datetime import datetime
 
-from db_connectors.mysqlConnector import MysqlConnector
-from db_connectors.databaseConnector import DatabaseConnector
+from storage_control.db_connectors.mysqlConnector import MysqlConnector
+from storage_control.db_connectors.databaseConnector import DatabaseConnector
 
 
 def update_storage(connector: DatabaseConnector):
