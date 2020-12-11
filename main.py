@@ -47,4 +47,4 @@ if __name__ == '__main__':
     os.environ['start_year'] = args.start_year
     conn = connectors[args.type]()
     plot_predictions(conn)
-    app.run(debug=True, port=8080)
+    app.run(debug=True, host='0.0.0.0', port=8080)
